@@ -20,6 +20,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
 
     implementation("org.seleniumhq.selenium:selenium-java:4.0.0")
+
     implementation("org.jsoup:jsoup:1.14.3")
 
     implementation(kotlin("stdlib"))

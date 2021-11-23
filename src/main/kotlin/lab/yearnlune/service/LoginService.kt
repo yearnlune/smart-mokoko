@@ -22,7 +22,7 @@ class LoginService(
         clickLoginButton()
     }
 
-    private fun moveLoginPage() = webDriverHandler.movePage(PageTypes.LOGIN_PAGE)
+    private fun moveLoginPage() = webDriverHandler.movePage(PageTypes.LOGIN)
         .until(
             ExpectedConditions.titleIs(
                 TitleTypes.LOGIN.getTitle()
@@ -33,9 +33,10 @@ class LoginService(
 
     private fun inputLoginPw(pw: String) = webDriverHandler.input(ElementTypes.INPUT_LOGIN_PW, pw)
 
-    private fun clickLoginButton() = webDriverHandler.click(ElementTypes.BUTTON_LOGIN).until(
-        ExpectedConditions.titleIs(
-            TitleTypes.MAIN.getTitle()
+    private fun clickLoginButton() = webDriverHandler.click(ElementTypes.BUTTON_LOGIN)
+        .until(
+            ExpectedConditions.urlMatches(
+                PageTypes.MAIN.getUrl()
+            )
         )
-    )
 }
