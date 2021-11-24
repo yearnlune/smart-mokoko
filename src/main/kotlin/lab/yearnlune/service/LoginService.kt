@@ -24,8 +24,8 @@ class LoginService(
 
     private fun moveLoginPage() = webDriverHandler.movePage(PageTypes.LOGIN)
         .until(
-            ExpectedConditions.titleIs(
-                TitleTypes.LOGIN.getTitle()
+            ExpectedConditions.urlToBe(
+                PageTypes.LOGIN.url
             )
         )
 
@@ -35,8 +35,8 @@ class LoginService(
 
     private fun clickLoginButton() = webDriverHandler.click(ElementTypes.BUTTON_LOGIN)
         .until(
-            ExpectedConditions.urlMatches(
-                PageTypes.MAIN.getUrl()
+            ExpectedConditions.urlToBe(
+                PageTypes.MAIN.url
             )
         )
 }
