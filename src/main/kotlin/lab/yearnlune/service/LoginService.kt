@@ -3,10 +3,11 @@ package lab.yearnlune.service
 import lab.yearnlune.crawling.WebDriverHandler
 import lab.yearnlune.model.type.ElementTypes
 import lab.yearnlune.model.type.PageTypes
-import lab.yearnlune.model.type.TitleTypes
+import org.openqa.selenium.TimeoutException
 import org.openqa.selenium.support.ui.ExpectedConditions
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
+import java.time.Duration
 
 @Service
 class LoginService(
@@ -16,13 +17,42 @@ class LoginService(
 ) {
 
     fun login() {
+        login(this.id, this.pw)
+    }
+
+    fun login(id: String, pw: String) {
         moveLoginPage()
         inputLoginId(id)
         inputLoginPw(pw)
         clickLoginButton()
     }
 
+    fun logout() {
+        if (isLogin()) {
+            webDriverHandler.click(ElementTypes.BUTTON_USER_INFO.xpath)
+                .until(ExpectedConditions.elementToBeClickable(webDriverHandler.findElement(ElementTypes.BUTTON_LOGOUT)))
+                .click()
+        }
+    }
+
+    fun isLogin(): Boolean {
+        var isLogin = false;
+        try {
+            isLogin = webDriverHandler.movePage(PageTypes.MEMBER)
+                .withTimeout(Duration.ofSeconds(3))
+                .until(
+                    ExpectedConditions.urlToBe(
+                        PageTypes.MEMBER.url
+                    )
+                )
+        } catch (e: TimeoutException) {
+        }
+
+        return isLogin
+    }
+
     private fun moveLoginPage() = webDriverHandler.movePage(PageTypes.LOGIN)
+        .withTimeout(Duration.ofSeconds(3))
         .until(
             ExpectedConditions.urlToBe(
                 PageTypes.LOGIN.url

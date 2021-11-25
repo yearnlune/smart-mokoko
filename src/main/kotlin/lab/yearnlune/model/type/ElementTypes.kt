@@ -1,13 +1,12 @@
 package lab.yearnlune.model.type
 
-enum class ElementTypes(private val xpath: String) {
+enum class ElementTypes(val xpath: String) {
 
     INPUT_LOGIN_ID("//*[@id=\"user_id\"]"),
     INPUT_LOGIN_PW("//*[@id=\"user_pwd\"]"),
     BUTTON_LOGIN("//*[@id=\"idLogin\"]/div[3]/button"),
-    BUTTON_ABC("//*[@id=\"lostark-wrapper\"]/div/main/div/div[3]/div[1]/ul/li[8]/ul/li[1]/a");
-
-    fun getXpath(): String {
-        return this.xpath
-    }
+    BUTTON_LOGOUT("//*[@id=\"logout-btn\"]/span[2]"),
+    BUTTON_USER_INFO("//*[@id=\"user-wrapper\"]/div[1]/button/span/img"),
+    BUTTON_MARKET_CATEGORY("//*[@id=\"lostark-wrapper\"]/div/main/div/div[3]/div[1]/ul"),
+    BUTTON_MARKET_PAGINATION_START("//*[@id=\"marketList\"]/div[2]");
 }
