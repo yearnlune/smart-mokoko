@@ -3,6 +3,7 @@ package lab.yearnlune.crawling
 import lab.yearnlune.model.type.ElementTypes
 import lab.yearnlune.model.type.PageTypes
 import org.openqa.selenium.By
+import org.openqa.selenium.NoSuchElementException
 import org.openqa.selenium.WebDriver
 import org.openqa.selenium.WebElement
 import org.openqa.selenium.chrome.ChromeDriver
@@ -28,35 +29,47 @@ class WebDriverHandler() {
         this.browser.manage().timeouts().implicitlyWait(2L, TimeUnit.SECONDS)
     }
 
-    fun movePage(pageTypes: PageTypes, timeout: Long = 10L, sleep: Long = 3000L): WebDriverWait {
+    fun movePageSafely(pageTypes: PageTypes, timeout: Long = 10L): Boolean? {
+        return movePage(pageTypes, timeout)
+            .until(ExpectedConditions.urlToBe(pageTypes.url))
+    }
+
+    fun movePage(pageTypes: PageTypes, timeout: Long = 10L): WebDriverWait {
         this.browser.get(pageTypes.url)
-        return WebDriverWait(this.browser, timeout, sleep)
+        return WebDriverWait(this.browser, timeout)
     }
 
-    fun click(elementTypes: ElementTypes, timeout: Long = 10L, sleep: Long = 3000L): WebDriverWait {
-        return click(elementTypes.xpath, timeout, sleep)
-    }
-
-    fun click(xPath: String, timeout: Long = 10L, sleep: Long = 3000L): WebDriverWait {
-        findElementXpath(xPath)
-            .until(ExpectedConditions.elementToBeClickable(findElementWithXpath(xPath)))
-            .click()
-
-        return WebDriverWait(this.browser, timeout, sleep)
-    }
-
-    fun input(elementTypes: ElementTypes, value: String) = findElement(elementTypes).sendKeys(value)
-
-    fun findElement(elementTypes: ElementTypes): WebElement = findElementWithXpath(elementTypes.xpath)
-
-    fun hasElement(xPath: String): Boolean = findElementWithXpath(xPath).isEnabled
-
-    fun findElementXpath(xPath: String): WebDriverWait {
-        findElementWithXpath(xPath)
+    fun findElementAndWait(xPath: String): WebDriverWait {
+        this.browser.findElement(By.xpath(xPath))
         return WebDriverWait(this.browser, 3L)
     }
 
-    fun findElementWithXpath(xPath: String): WebElement = this.browser.findElement(By.xpath(xPath))
+    fun findElementSafely(elementTypes: ElementTypes): WebElement = findElementSafely(elementTypes.xpath)
+
+    fun findElementSafely(xPath: String): WebElement =
+        findElementAndWait(xPath).until(ExpectedConditions.presenceOfElementLocated(By.xpath(xPath)))
+
+    fun hasElement(xPath: String): Boolean {
+        var hasElement = false;
+        try {
+            hasElement = this.browser.findElement(By.xpath(xPath)).isEnabled
+        } catch (e: NoSuchElementException) {
+        }
+        return hasElement
+    }
+
+    fun clickAndWait(elementTypes: ElementTypes, timeout: Long = 10L): WebDriverWait =
+        clickAndWait(elementTypes.xpath, timeout)
+
+    fun clickAndWait(xPath: String, timeout: Long = 10L): WebDriverWait {
+        findElementAndWait(xPath)
+            .until(ExpectedConditions.elementToBeClickable(this.browser.findElement(By.xpath(xPath))))
+            .click()
+
+        return WebDriverWait(this.browser, timeout)
+    }
+
+    fun input(elementTypes: ElementTypes, value: String) = findElementSafely(elementTypes).sendKeys(value)
 
     fun getCurrentUrl(): String = this.browser.currentUrl;
 

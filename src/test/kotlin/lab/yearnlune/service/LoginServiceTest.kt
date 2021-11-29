@@ -66,4 +66,28 @@ internal class LoginServiceTest @Autowired constructor(
         /* THEN */
         assertThat(isLogin, `is`(false))
     }
+
+    @Test
+    internal fun logout_alreadyLogin_shouldBeLogout() {
+        /* GIVEN */
+        loginService.login()
+
+        /* WHEN */
+        loginService.logout()
+
+        /* THEN */
+        assertThat(loginService.isLogin(), `is`(false))
+    }
+
+    @Test
+    internal fun logout_notLogin_shouldBeLogout() {
+        /* GIVEN */
+        // NOT LOGIN
+
+        /* WHEN */
+        loginService.logout()
+
+        /* THEN */
+        assertThat(loginService.isLogin(), `is`(false))
+    }
 }

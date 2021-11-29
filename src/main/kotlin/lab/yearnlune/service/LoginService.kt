@@ -29,8 +29,8 @@ class LoginService(
 
     fun logout() {
         if (isLogin()) {
-            webDriverHandler.click(ElementTypes.BUTTON_USER_INFO.xpath)
-                .until(ExpectedConditions.elementToBeClickable(webDriverHandler.findElement(ElementTypes.BUTTON_LOGOUT)))
+            webDriverHandler.clickAndWait(ElementTypes.BUTTON_USER_INFO.xpath)
+                .until(ExpectedConditions.elementToBeClickable(webDriverHandler.findElementSafely(ElementTypes.BUTTON_LOGOUT)))
                 .click()
         }
     }
@@ -51,19 +51,13 @@ class LoginService(
         return isLogin
     }
 
-    private fun moveLoginPage() = webDriverHandler.movePage(PageTypes.LOGIN)
-        .withTimeout(Duration.ofSeconds(3))
-        .until(
-            ExpectedConditions.urlToBe(
-                PageTypes.LOGIN.url
-            )
-        )
+    private fun moveLoginPage(): Boolean? = webDriverHandler.movePageSafely(PageTypes.LOGIN)
 
     private fun inputLoginId(id: String) = webDriverHandler.input(ElementTypes.INPUT_LOGIN_ID, id)
 
     private fun inputLoginPw(pw: String) = webDriverHandler.input(ElementTypes.INPUT_LOGIN_PW, pw)
 
-    private fun clickLoginButton() = webDriverHandler.click(ElementTypes.BUTTON_LOGIN)
+    private fun clickLoginButton() = webDriverHandler.clickAndWait(ElementTypes.BUTTON_LOGIN)
         .until(
             ExpectedConditions.urlToBe(
                 PageTypes.MAIN.url
