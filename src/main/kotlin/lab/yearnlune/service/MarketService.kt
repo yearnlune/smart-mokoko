@@ -21,6 +21,8 @@ class MarketService(private val webDriverHandler: WebDriverHandler) {
         getMarketItemList(marketCategoryTypes)
     }
 
+    fun getPrice(itemName: String): Long? = this.itemMap[itemName]
+
     private fun moveMarketPage(): Boolean? = webDriverHandler.movePageSafely(PageTypes.MARKET)
 
     private fun clickMarketCategory(marketCategoryTypes: MarketCategoryTypes) {
@@ -113,7 +115,7 @@ class MarketService(private val webDriverHandler: WebDriverHandler) {
                     firstItemName = itemName
                 }
                 this.itemMap[itemName] = getLongTypePrice(getItemPriceWithItemIndex(itemIndex++))
-                println("[#$itemIndex]$itemName: ${this.itemMap[itemName]}")
+                logger().info("[#$itemIndex]$itemName: ${this.itemMap[itemName]}")
             }
             pageNumber++
         }
