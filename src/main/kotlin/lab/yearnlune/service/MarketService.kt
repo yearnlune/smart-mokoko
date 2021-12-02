@@ -6,6 +6,7 @@ import lab.yearnlune.model.type.ElementTypes
 import lab.yearnlune.model.type.MarketCategoryTypes
 import lab.yearnlune.model.type.PageTypes
 import org.openqa.selenium.By
+import org.openqa.selenium.NoSuchElementException
 import org.openqa.selenium.StaleElementReferenceException
 import org.openqa.selenium.support.ui.ExpectedConditions
 import org.springframework.stereotype.Service
@@ -14,14 +15,14 @@ import java.time.Duration
 @Service
 class MarketService(private val webDriverHandler: WebDriverHandler) {
 
-    private val itemMap: MutableMap<String, Long> = HashMap()
+    private val itemMap: MutableMap<String, Double> = HashMap()
 
     fun crawling(marketCategoryTypes: MarketCategoryTypes = MarketCategoryTypes.LIFE) {
         moveMarketPage()
         getMarketItemList(marketCategoryTypes)
     }
 
-    fun getPrice(itemName: String): Long? = this.itemMap[itemName]
+    fun getPrice(itemName: String): Double? = this.itemMap[itemName]
 
     private fun moveMarketPage(): Boolean? = webDriverHandler.movePageSafely(PageTypes.MARKET)
 
@@ -56,6 +57,8 @@ class MarketService(private val webDriverHandler: WebDriverHandler) {
 
     private fun getItemNameXpathWithItemXpath(xPath: String) = "$xPath/td[1]/div/span[2]"
 
+    private fun getItemBundleXpathWithItemXpath(xPath: String) = "$xPath/td[1]/div/span[3]/em"
+
     private fun getItemPriceXpathWithItemXpath(xPath: String) = "$xPath/td[4]"
 
     private fun getItemNameWithItemIndex(index: Int) =
@@ -63,6 +66,18 @@ class MarketService(private val webDriverHandler: WebDriverHandler) {
 
     private fun getItemPriceWithItemIndex(index: Int) =
         webDriverHandler.findElementSafely("${getXpathItem(index)}/td[4]").text
+
+    private fun getItemBundleWithItemIndex(index: Int): Long {
+        var bundle = 1L;
+
+        try {
+            val bundleText = webDriverHandler.findElementSafely("${getXpathItem(index)}/td[1]/div/span[3]/em").text
+            bundle = "\\d++".toRegex().find(bundleText)?.value?.toLongOrNull() ?: 1L;
+        } catch (e: NoSuchElementException) {
+        }
+
+        return bundle
+    }
 
     private fun clickPageButton(pageNumber: Int, firstItemName: String = "") =
         webDriverHandler.clickAndWait(getPageNumberElementXpath(pageNumber))
@@ -111,11 +126,14 @@ class MarketService(private val webDriverHandler: WebDriverHandler) {
 
             while (webDriverHandler.hasElement(getXpathItem(itemIndex))) {
                 val itemName = getItemNameWithItemIndex(itemIndex)
+                val itemBundle = getItemBundleWithItemIndex(itemIndex)
+
                 if (itemIndex < 1) {
                     firstItemName = itemName
                 }
-                this.itemMap[itemName] = getLongTypePrice(getItemPriceWithItemIndex(itemIndex++))
-                logger().info("[#$itemIndex]$itemName: ${this.itemMap[itemName]}")
+                this.itemMap[itemName] =
+                    getLongTypePrice(getItemPriceWithItemIndex(itemIndex++)) / itemBundle.toDouble()
+                logger().info("[#$itemIndex]$itemName : ${this.itemMap[itemName]}")
             }
             pageNumber++
         }
