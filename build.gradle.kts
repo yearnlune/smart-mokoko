@@ -2,6 +2,8 @@ plugins {
     kotlin("jvm") version "1.5.31"
     kotlin("plugin.spring") version "1.4.32"
     kotlin("plugin.jpa") version "1.4.32"
+    kotlin("plugin.noarg") version "1.4.32"
+    kotlin("plugin.allopen") version "1.4.32"
     id("org.springframework.boot") version "2.5.6"
     id("io.spring.dependency-management") version "1.0.11.RELEASE"
     java
