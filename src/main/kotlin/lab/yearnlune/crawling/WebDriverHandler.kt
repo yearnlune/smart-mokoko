@@ -46,8 +46,10 @@ class WebDriverHandler() {
 
     fun findElementSafely(elementTypes: ElementTypes): WebElement = findElementSafely(elementTypes.xpath)
 
-    fun findElementSafely(xPath: String): WebElement =
-        findElementAndWait(xPath).until(ExpectedConditions.presenceOfElementLocated(By.xpath(xPath)))
+    fun findElementSafely(xPath: String): WebElement = findElementSafely(xPath, xPath)
+
+    fun findElementSafely(xPath: String, expectedXpath: String): WebElement =
+        findElementAndWait(xPath).until(ExpectedConditions.presenceOfElementLocated(By.xpath(expectedXpath)))
 
     fun hasElement(xPath: String): Boolean {
         var hasElement = false;

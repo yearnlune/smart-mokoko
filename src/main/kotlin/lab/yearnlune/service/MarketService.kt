@@ -2,6 +2,7 @@ package lab.yearnlune.service
 
 import lab.yearnlune.crawling.WebDriverHandler
 import lab.yearnlune.logger
+import lab.yearnlune.model.crawling.CrawledMarketItem
 import lab.yearnlune.model.type.ElementTypes
 import lab.yearnlune.model.type.MarketCategoryTypes
 import lab.yearnlune.model.type.PageTypes
@@ -60,6 +61,30 @@ class MarketService(private val webDriverHandler: WebDriverHandler) {
     private fun getItemBundleXpathWithItemXpath(xPath: String) = "$xPath/td[1]/div/span[3]/em"
 
     private fun getItemPriceXpathWithItemXpath(xPath: String) = "$xPath/td[4]"
+
+    private fun getItem(index: Int): CrawledMarketItem {
+        val raw: String = this.getRawItem(index)
+        val tokens: MutableList<String> = raw.split("\n") as MutableList<String>
+        var bundle = 1L;
+        var trade = -1L;
+
+        if (tokens.size > 5) {
+            trade = "^\\[구매 시 거래 (.)".toRegex().findAll(tokens[1])
+                .map { it.groupValues[1].toLongOrNull() ?: 0L }.joinToString().toLongOrNull() ?: -1L
+            bundle = "^\\[(\\d+)".toRegex().find(tokens.removeAt(1))?.groupValues?.get(1)?.toLongOrNull() ?: 1L
+        }
+
+        return CrawledMarketItem(
+            name = tokens[0],
+            bundle = bundle,
+            trade = trade,
+            average = tokens[1].toDoubleOrNull() ?: 0.0,
+            recent = getLongTypePrice(tokens[2]),
+            current = getLongTypePrice(tokens[3]),
+        )
+    }
+
+    private fun getRawItem(index: Int): String = webDriverHandler.findElementSafely(getXpathItem(index)).text
 
     private fun getItemNameWithItemIndex(index: Int) =
         webDriverHandler.findElementSafely("${getXpathItem(index)}/td[1]/div/span[2]").text
@@ -125,19 +150,17 @@ class MarketService(private val webDriverHandler: WebDriverHandler) {
             }
 
             while (webDriverHandler.hasElement(getXpathItem(itemIndex))) {
-                val itemName = getItemNameWithItemIndex(itemIndex)
-                val itemBundle = getItemBundleWithItemIndex(itemIndex)
-
                 if (itemIndex < 1) {
-                    firstItemName = itemName
+                    firstItemName = getItemNameWithItemIndex(itemIndex)
                 }
-                this.itemMap[itemName] =
-                    getLongTypePrice(getItemPriceWithItemIndex(itemIndex++)) / itemBundle.toDouble()
-                logger().info("[#$itemIndex]$itemName : ${this.itemMap[itemName]}")
+                val item = getItem(itemIndex)
+                this.itemMap[item.name] = item.current?.div(item.bundle.toDouble()) ?: 0.0
+                logger().info("[#$itemIndex]${item.name} : ${this.itemMap[item.name]}")
+                itemIndex++
             }
             pageNumber++
         }
     }
 
-    private fun getLongTypePrice(price: String): Long = price.replace(",", "").toLong()
+    private fun getLongTypePrice(price: String): Long = price.replace(",", "").toLongOrNull() ?: 0L
 }
