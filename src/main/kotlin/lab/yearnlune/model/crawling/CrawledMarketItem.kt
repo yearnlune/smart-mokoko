@@ -1,8 +1,12 @@
 package lab.yearnlune.model.crawling
 
+import lab.yearnlune.model.type.GradeTypes
+
 data class CrawledMarketItem(
 
     val name: String,
+
+    val grade: GradeTypes,
 
     val bundle: Long,
 
