@@ -4,6 +4,7 @@ import lab.yearnlune.crawling.WebDriverHandler
 import lab.yearnlune.logger
 import lab.yearnlune.model.crawling.CrawledMarketItem
 import lab.yearnlune.model.type.ElementTypes
+import lab.yearnlune.model.type.GradeTypes
 import lab.yearnlune.model.type.MarketCategoryTypes
 import lab.yearnlune.model.type.PageTypes
 import org.openqa.selenium.By
@@ -76,6 +77,7 @@ class MarketService(private val webDriverHandler: WebDriverHandler) {
 
         return CrawledMarketItem(
             name = tokens[0],
+            grade = GradeTypes.fromValue(getRawItemGrade(index)),
             bundle = bundle,
             trade = trade,
             average = tokens[1].toDoubleOrNull() ?: 0.0,
@@ -85,6 +87,8 @@ class MarketService(private val webDriverHandler: WebDriverHandler) {
     }
 
     private fun getRawItem(index: Int): String = webDriverHandler.findElementSafely(getXpathItem(index)).text
+
+    private fun getRawItemGrade(index: Int): Int = webDriverHandler.findElementSafely(getXpathItem(index) + "/td[1]/div").getAttribute("data-grade").toIntOrNull() ?: 0
 
     private fun getItemNameWithItemIndex(index: Int) =
         webDriverHandler.findElementSafely("${getXpathItem(index)}/td[1]/div/span[2]").text
@@ -154,8 +158,8 @@ class MarketService(private val webDriverHandler: WebDriverHandler) {
                     firstItemName = getItemNameWithItemIndex(itemIndex)
                 }
                 val item = getItem(itemIndex)
-                this.itemMap[item.name] = item.current?.div(item.bundle.toDouble()) ?: 0.0
-                logger().info("[#$itemIndex]${item.name} : ${this.itemMap[item.name]}")
+                this.itemMap[item.name] = item.current.div(item.bundle.toDouble())
+                logger().info("[#$itemIndex]${item.name}[${item.grade.name}] : ${this.itemMap[item.name]}")
                 itemIndex++
             }
             pageNumber++
