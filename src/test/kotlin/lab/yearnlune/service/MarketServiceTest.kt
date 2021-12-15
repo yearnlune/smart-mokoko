@@ -15,7 +15,9 @@ internal class MarketServiceTest @Autowired constructor(
 
     @BeforeEach
     internal fun login() {
-        loginService.login()
+        if (!loginService.isLogin()) {
+            loginService.login()
+        }
     }
 
     @Test
