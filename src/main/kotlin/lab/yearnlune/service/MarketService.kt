@@ -109,7 +109,7 @@ class MarketService(private val webDriverHandler: WebDriverHandler) {
     }
 
     private fun clickPageButton(pageNumber: Int, firstItemName: String = "") =
-        webDriverHandler.clickAndWait(getPageNumberElementXpath(pageNumber))
+        webDriverHandler.clickAndWait(getPageNumberElementXpath(pageNumber % 10))
             .withTimeout(Duration.ofSeconds(3))
             .ignoring(StaleElementReferenceException::class.java)
             .until(
@@ -127,15 +127,22 @@ class MarketService(private val webDriverHandler: WebDriverHandler) {
     private fun getPageNumberElementXpath(pageNumber: Int): String {
         var elementNumber = 3
         if (pageNumber > 1) {
-            elementNumber = (pageNumber % 11) + 1
+            elementNumber = pageNumber + 1
         }
         return ElementTypes.BUTTON_MARKET_PAGINATION_START.xpath + "/a[$elementNumber]"
     }
 
     private fun isPageNumberElement(pageNumber: Int): Boolean {
-        val pageNumberXpath = getPageNumberElementXpath(pageNumber)
+        val refinedPageNumber = pageNumber % 10
+        val pageNumberXpath = getPageNumberElementXpath(refinedPageNumber)
+
+        if (pageNumber != 1 && refinedPageNumber == 1) {
+            webDriverHandler.clickAndWait(getPageNumberElementXpath(refinedPageNumber + 10))
+                .until(ExpectedConditions.textToBe(By.xpath(pageNumberXpath), (pageNumber + 1).toString()))
+        }
+
         return webDriverHandler.hasElement(pageNumberXpath) &&
-                (pageNumber == 1 || webDriverHandler.findElementSafely(pageNumberXpath).text.toLongOrNull() != null)
+                (refinedPageNumber == 1 || webDriverHandler.findElementSafely(pageNumberXpath).text.toLongOrNull() != null)
     }
 
     private fun getMarketItemList(marketCategoryTypes: MarketCategoryTypes) {
@@ -148,7 +155,7 @@ class MarketService(private val webDriverHandler: WebDriverHandler) {
         while (isPageNumberElement(pageNumber)) {
             var itemIndex = 0
 
-            if (pageNumber > 1) {
+            if (pageNumber % 10 != 1) {
                 logger().info("PAGE NUMBER, [$pageNumber, $firstItemName]")
                 clickPageButton(pageNumber, firstItemName)
             }
